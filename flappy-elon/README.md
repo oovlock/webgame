@@ -16,7 +16,7 @@ No servers, build tools, or installations required.
 
 - **Tap / Click / Space / Enter / Arrow Up/Down** – Flap upward
 - **Tap / Click** while on the start screen – begin a run
-- **Difficulty buttons** (Easy / Normal / Hard / Elon Mode) – choose the pipe speed profile before take-off (Elon Mode is ~4× faster than Hard)
+- **Difficulty buttons** (Easy / Normal / Hard / Elon Mode) – choose the pipe speed profile before take-off (Elon Mode is tuned for high-speed play)
 - **R** on the keyboard – restart quickly after a crash
 
 ## Gameplay Features
@@ -25,7 +25,7 @@ No servers, build tools, or installations required.
 - Responsive click/tap/space controls
 - Parallax starfield, drifting clouds, and scrolling ground
 - Procedurally generated pipe pairs with adaptive difficulty curves
-- Four difficulty presets, capped by the ludicrous 4× speed "Elon Mode"
+- Four difficulty presets, capped by the ludicrous-speed "Elon Mode"
 - On-screen score plus persistent local high score (stored in `localStorage`)
 - Screen shake, fade transitions, calm retro soundtrack, and rotation animation for crashes
 - Crash quotes because Elon's ego demands narration
@@ -115,16 +115,16 @@ const DIFFICULTY_PRESETS = {
     gapVariance: 110
   },
   elon: {
-    baseSpeed: 840,
-    maxSpeed: 1360,
-    speedIncrement: 64,
+    baseSpeed: 504,
+    maxSpeed: 816,
+    speedIncrement: 38,
     gap: 110,
-    gapReduction: 5.2,
+    gapReduction: 3.1,
     minGap: 72,
-    spawnInterval: 0.36,
-    minSpawnInterval: 0.18,
-    spawnAcceleration: 0.08,
-    gapVariance: 160
+    spawnInterval: 0.6,
+    minSpawnInterval: 0.3,
+    spawnAcceleration: 0.048,
+    gapVariance: 96
   }
 };
 ```

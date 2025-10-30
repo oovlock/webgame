@@ -97,16 +97,16 @@ const DIFFICULTY_PRESETS = {
     gapVariance: 110
   },
   elon: {
-    baseSpeed: 840,
-    maxSpeed: 1360,
-    speedIncrement: 64,
+    baseSpeed: 504,
+    maxSpeed: 816,
+    speedIncrement: 38,
     gap: 110,
-    gapReduction: 5.2,
+    gapReduction: 3.1,
     minGap: 72,
-    spawnInterval: 0.36,
-    minSpawnInterval: 0.18,
-    spawnAcceleration: 0.08,
-    gapVariance: 160
+    spawnInterval: 0.6,
+    minSpawnInterval: 0.3,
+    spawnAcceleration: 0.048,
+    gapVariance: 96
   }
 };
 
