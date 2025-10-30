@@ -42,6 +42,14 @@ All art lives in `assets/sprites/`:
 | `ground.png` | Scrolling terrain strip | Anchored to the bottom of the canvas |
 
 > Drop in new PNGs with the same filenames to reskin the game. Stretching is handled by the renderer, so any size ≥ the current dimensions works.
+>
+> ### Swap in your own Elon sprite
+>
+> 1. Create your custom image (PNG with transparency recommended).
+> 2. Name it `elon.png` and place it inside `flappy-elon/assets/sprites/`, replacing the existing file.
+> 3. Reload the page. The canvas will automatically pick up the updated art on the next run.
+>
+> **Tip:** If your sprite is much wider/taller than the placeholder, you can tweak the player render size in `game.js` – look for the `width` and `height` values inside `createPlayer()` to adjust the on-screen size without editing the image itself.
 
 ### Swap the Sounds
 
