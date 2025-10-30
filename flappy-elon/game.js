@@ -3,7 +3,7 @@
  *
  * 🔧 Customisation quick start:
  *  - Replace the PNG sprites inside assets/sprites/ with matching filenames to reskin the game.
- *  - Adjust the PHYSICS, PIPE, and DIFFICULTY constants below to change feel & difficulty.
+ *  - Adjust the PHYSICS, PIPE, and DIFFICULTY_PRESETS constants below to change feel & difficulty.
  *  - Update the QUOTES array to tweak the crash banter.
  */
 
@@ -18,11 +18,19 @@ const finalScoreLabel = document.getElementById('finalScore');
 const bestScoreLabel = document.getElementById('bestScore');
 const crashQuoteLabel = document.getElementById('crashQuote');
 
-const sounds = {
-  flap: document.getElementById('flapSound'),
+let scorePulseTimeout;
+
+const audio = {
   hit: document.getElementById('hitSound'),
-  score: document.getElementById('scoreSound')
+  music: document.getElementById('musicTrack')
 }; // Swap the WAV files in assets/audio to re-theme the soundscape.
+
+if (audio.music) {
+  audio.music.volume = 0.35;
+  audio.music.loop = true;
+}
+
+const difficultyButtons = Array.from(document.querySelectorAll('.difficulty-button'));
 
 const WORLD = {
   WIDTH: canvas.width,
@@ -33,9 +41,11 @@ const GROUND_Y = WORLD.HEIGHT - WORLD.GROUND_HEIGHT;
 
 // Physics knobs ------------------------------------------------------------
 const PHYSICS = {
-  GRAVITY: 800, // px / s^2
-  FLAP_STRENGTH: 250, // velocity kick when the player flaps
-  MAX_DROP_SPEED: 520
+  GRAVITY: 780, // px / s^2
+  FLAP_STRENGTH: 265, // velocity kick when the player flaps
+  MAX_DROP_SPEED: 540,
+  DRAG: 0.08, // air resistance factor
+  ROTATION_SMOOTHING: 7.5
 };
 
 // Pipe configuration -------------------------------------------------------
@@ -48,13 +58,48 @@ const PIPE = {
   MAX_GAP_CENTER: GROUND_Y - 120
 };
 
-// Difficulty pacing – tweak to ramp up faster/slower -----------------------
-const DIFFICULTY = {
-  SPEED_INCREMENT: 9, // additional px/s per point
-  GAP_REDUCTION: 2.5, // px less gap per point
-  MIN_GAP: 110,
-  MAX_SPEED: 240
+// Difficulty presets -------------------------------------------------------
+const DIFFICULTY_PRESETS = {
+  easy: {
+    baseSpeed: 120,
+    maxSpeed: 190,
+    speedIncrement: 6,
+    gap: 155,
+    gapReduction: 1.6,
+    minGap: 130,
+    spawnInterval: 2.05,
+    minSpawnInterval: 1.45,
+    spawnAcceleration: 0.015,
+    gapVariance: 65
+  },
+  normal: {
+    baseSpeed: 150,
+    maxSpeed: 240,
+    speedIncrement: 9,
+    gap: 140,
+    gapReduction: 2.4,
+    minGap: 112,
+    spawnInterval: 1.85,
+    minSpawnInterval: 1.25,
+    spawnAcceleration: 0.02,
+    gapVariance: 78
+  },
+  hard: {
+    baseSpeed: 188,
+    maxSpeed: 270,
+    speedIncrement: 12,
+    gap: 130,
+    gapReduction: 3.2,
+    minGap: 98,
+    spawnInterval: 1.65,
+    minSpawnInterval: 1.1,
+    spawnAcceleration: 0.025,
+    gapVariance: 96
+  }
 };
+
+const DEFAULT_DIFFICULTY = 'normal';
+const initialDifficulty = DIFFICULTY_PRESETS[DEFAULT_DIFFICULTY];
 
 const QUOTES = [
   '“I needed more thrust!”',
@@ -68,14 +113,18 @@ const QUOTES = [
 
 const state = {
   current: 'boot', // boot | ready | playing | gameover
+  difficulty: DEFAULT_DIFFICULTY,
   score: 0,
   highScore: Number(localStorage.getItem('flappy-elon-high-score')) || 0,
   spawnTimer: 0,
-  pipeSpeed: PIPE.BASE_SPEED,
-  pipeGap: PIPE.GAP,
+  pipeSpeed: initialDifficulty.baseSpeed,
+  targetPipeSpeed: initialDifficulty.baseSpeed,
+  pipeGap: initialDifficulty.gap,
   pipes: [],
+  lastGapCenter: (PIPE.MIN_GAP_CENTER + PIPE.MAX_GAP_CENTER) / 2,
   shake: { time: 0, duration: 0, intensity: 0, offsetX: 0, offsetY: 0 },
-  fade: { active: false, alpha: 0, direction: 0, speed: 2.8, pending: null }
+  fade: { active: false, alpha: 0, direction: 0, speed: 2.8, pending: null },
+  musicUnlocked: false
 };
 
 const backgroundLayers = [];
@@ -113,6 +162,7 @@ Promise.all(
 });
 
 restartButton.addEventListener('click', () => {
+  ensureMusicLoop();
   if (state.current !== 'gameover') return;
   triggerTransition(goToReadyState);
 });
@@ -124,9 +174,19 @@ window.addEventListener('keydown', (event) => {
     handlePrimaryInput();
   }
   if (event.code === 'KeyR' && state.current === 'gameover') {
+    ensureMusicLoop();
     triggerTransition(goToReadyState);
   }
 });
+
+difficultyButtons.forEach((button) => {
+  button.addEventListener('click', () => {
+    ensureMusicLoop();
+    setDifficulty(button.dataset.difficulty);
+  });
+});
+
+updateDifficultyButtons();
 
 let lastFrameTime = performance.now();
 requestAnimationFrame(gameLoop);
@@ -138,23 +198,20 @@ requestAnimationFrame(gameLoop);
 function goToReadyState() {
   state.current = 'ready';
   state.score = 0;
-  state.spawnTimer = 0;
-  state.pipeSpeed = PIPE.BASE_SPEED;
-  state.pipeGap = PIPE.GAP;
+  syncDifficultySettings();
   state.pipes = [];
   groundScroll = 0;
   player.reset(true);
   hideOverlay(gameOverOverlay);
   showOverlay(startOverlay);
+  updateDifficultyButtons();
   updateScoreUI();
 }
 
 function startPlaying() {
   state.current = 'playing';
   state.score = 0;
-  state.spawnTimer = 0;
-  state.pipeSpeed = PIPE.BASE_SPEED;
-  state.pipeGap = PIPE.GAP;
+  syncDifficultySettings();
   state.pipes = [];
   player.reset(false);
   hideOverlay(startOverlay);
@@ -185,18 +242,18 @@ function triggerTransition(callback) {
 function handlePrimaryInput() {
   if (!assets.ready) return;
 
+  ensureMusicLoop();
+
   if (state.current === 'ready') {
     triggerTransition(() => {
       startPlaying();
       player.flap();
-      safePlay(sounds.flap);
     });
     return;
   }
 
   if (state.current === 'playing') {
     player.flap();
-    safePlay(sounds.flap);
     return;
   }
 
@@ -227,17 +284,25 @@ function update(dt) {
   updateBackground(dt);
   updateClouds(dt);
 
+  const groundTextureWidth = assets.images.ground ? assets.images.ground.width : WORLD.WIDTH;
+
   if (state.current === 'ready') {
+    const settings = getDifficultySettings();
+    state.pipeSpeed += (settings.baseSpeed * 0.75 - state.pipeSpeed) * 0.08;
     player.idle(dt);
-    groundScroll = (groundScroll + state.pipeSpeed * 0.35 * dt) % assets.images.ground.width;
+    groundScroll = (groundScroll + state.pipeSpeed * 0.35 * dt) % groundTextureWidth;
     return;
   }
 
   if (state.current === 'playing') {
     player.update(dt);
 
+    const settings = getDifficultySettings();
     state.spawnTimer += dt;
-    const spawnInterval = Math.max(1.05, PIPE.SPAWN_INTERVAL - state.score * 0.02);
+    const spawnInterval = Math.max(
+      settings.minSpawnInterval,
+      settings.spawnInterval - state.score * settings.spawnAcceleration
+    );
     if (state.spawnTimer >= spawnInterval) {
       spawnPipePair();
       state.spawnTimer = 0;
@@ -245,15 +310,16 @@ function update(dt) {
 
     updatePipes(dt);
     updateDifficulty();
-    groundScroll = (groundScroll + state.pipeSpeed * dt) % assets.images.ground.width;
+    groundScroll = (groundScroll + state.pipeSpeed * dt) % groundTextureWidth;
 
     detectCollisions();
     return;
   }
 
   if (state.current === 'gameover') {
+    state.pipeSpeed += (getDifficultySettings().baseSpeed * 0.4 - state.pipeSpeed) * 0.04;
     player.fallIdle(dt);
-    groundScroll = (groundScroll + state.pipeSpeed * 0.15 * dt) % assets.images.ground.width;
+    groundScroll = (groundScroll + state.pipeSpeed * 0.15 * dt) % groundTextureWidth;
   }
 }
 
@@ -262,6 +328,8 @@ function draw() {
     drawLoading();
     return;
   }
+
+  ctx.imageSmoothingEnabled = false;
 
   ctx.save();
   applyShakeTransform();
@@ -307,14 +375,23 @@ function createPlayer() {
     flap() {
       if (this.dead) return;
       this.velocity = -PHYSICS.FLAP_STRENGTH;
+      this.rotation = clamp(-0.8, 1.2, this.rotation - 0.25);
     },
     update(dt) {
-      this.velocity = Math.min(this.velocity + PHYSICS.GRAVITY * dt, PHYSICS.MAX_DROP_SPEED);
+      this.velocity += PHYSICS.GRAVITY * dt;
+      this.velocity -= this.velocity * PHYSICS.DRAG * dt;
+      this.velocity = Math.min(this.velocity, PHYSICS.MAX_DROP_SPEED);
       this.y += this.velocity * dt;
-      this.rotation = clamp(-0.7, 0.9, (this.velocity / PHYSICS.MAX_DROP_SPEED) * 1.2);
 
-      if (this.y < -30) {
-        this.y = -30;
+      const rotationTarget = clamp(
+        -0.55,
+        1.2,
+        (this.velocity / PHYSICS.MAX_DROP_SPEED) * 1.25
+      );
+      this.rotation = lerp(this.rotation, rotationTarget, PHYSICS.ROTATION_SMOOTHING * dt);
+
+      if (this.y < -32) {
+        this.y = -32;
         this.velocity = 0;
       }
 
@@ -325,15 +402,19 @@ function createPlayer() {
       }
     },
     idle(dt) {
-      this.idleTimer += dt * 2.2;
-      const floatRange = 12;
-      this.y = WORLD.HEIGHT * 0.45 + Math.sin(this.idleTimer) * floatRange;
-      this.rotation = Math.sin(this.idleTimer * 0.6) * 0.1;
+      this.idleTimer += dt * 1.8;
+      const floatRange = 11;
+      const bob = Math.sin(this.idleTimer) * floatRange;
+      this.y = WORLD.HEIGHT * 0.45 + bob;
+      const rotationTarget = Math.sin(this.idleTimer * 0.75) * 0.18;
+      this.rotation = lerp(this.rotation, rotationTarget, 6 * dt);
     },
     fallIdle(dt) {
-      this.velocity = Math.min(this.velocity + PHYSICS.GRAVITY * dt, PHYSICS.MAX_DROP_SPEED);
+      this.velocity += PHYSICS.GRAVITY * dt;
+      this.velocity -= this.velocity * PHYSICS.DRAG * 0.5 * dt;
+      this.velocity = Math.min(this.velocity, PHYSICS.MAX_DROP_SPEED);
       this.y = Math.min(this.y + this.velocity * dt, GROUND_Y - this.height - 4);
-      this.rotation = clamp(-0.7, 1.2, this.rotation + dt * 1.2);
+      this.rotation = lerp(this.rotation, 1.05, 3 * dt);
     },
     draw(context, sprite) {
       context.save();
@@ -359,8 +440,14 @@ function createPlayer() {
 // Pipes --------------------------------------------------------------------
 
 function spawnPipePair() {
-  const gapCenter = randomRange(PIPE.MIN_GAP_CENTER, PIPE.MAX_GAP_CENTER);
+  const settings = getDifficultySettings();
   const gapSize = state.pipeGap;
+  const minCenter = PIPE.MIN_GAP_CENTER + gapSize / 2;
+  const maxCenter = PIPE.MAX_GAP_CENTER - gapSize / 2;
+  const drift = randomRange(-settings.gapVariance, settings.gapVariance);
+  const targetCenter = clamp(minCenter, maxCenter, state.lastGapCenter + drift);
+  state.lastGapCenter = lerp(state.lastGapCenter, targetCenter, 0.65);
+  const gapCenter = clamp(minCenter, maxCenter, state.lastGapCenter);
   const topHeight = gapCenter - gapSize / 2;
   const bottomY = gapCenter + gapSize / 2;
 
@@ -381,7 +468,7 @@ function updatePipes(dt) {
       pipe.scored = true;
       state.score += 1;
       updateScoreUI();
-      safePlay(sounds.score);
+      pulseScoreboard();
     }
   });
 
@@ -442,14 +529,17 @@ function detectCollisions() {
 }
 
 function updateDifficulty() {
-  const desiredSpeed = Math.min(
-    PIPE.BASE_SPEED + state.score * DIFFICULTY.SPEED_INCREMENT,
-    DIFFICULTY.MAX_SPEED
-  );
-  state.pipeSpeed += (desiredSpeed - state.pipeSpeed) * 0.25;
+  const settings = getDifficultySettings();
 
-  const desiredGap = Math.max(PIPE.GAP - state.score * DIFFICULTY.GAP_REDUCTION, DIFFICULTY.MIN_GAP);
-  state.pipeGap += (desiredGap - state.pipeGap) * 0.2;
+  const desiredSpeed = Math.min(
+    settings.baseSpeed + state.score * settings.speedIncrement,
+    settings.maxSpeed
+  );
+  state.targetPipeSpeed += (desiredSpeed - state.targetPipeSpeed) * 0.35;
+  state.pipeSpeed += (state.targetPipeSpeed - state.pipeSpeed) * 0.18;
+
+  const desiredGap = Math.max(settings.gap - state.score * settings.gapReduction, settings.minGap);
+  state.pipeGap += (desiredGap - state.pipeGap) * 0.25;
 }
 
 function triggerCrash() {
@@ -458,9 +548,9 @@ function triggerCrash() {
   state.current = 'gameover';
   player.dead = true;
   startShake(0.45, 12);
-  safePlay(sounds.hit);
+  safePlay(audio.hit);
   player.velocity = 0;
-  player.rotation = 0.9;
+  player.rotation = 1.05;
 
   if (state.score > state.highScore) {
     state.highScore = state.score;
@@ -648,9 +738,94 @@ function hideOverlay(element) {
 
 function updateScoreUI() {
   scoreDisplay.textContent = state.score.toString();
+  scoreDisplay.setAttribute('data-difficulty', state.difficulty);
   if (state.current !== 'playing') {
     scoreDisplay.classList.add('is-hidden');
+    scoreDisplay.classList.remove('scoreboard--pulse');
   } else {
     scoreDisplay.classList.remove('is-hidden');
   }
+}
+
+function pulseScoreboard() {
+  if (!scoreDisplay) return;
+  scoreDisplay.classList.add('scoreboard--pulse');
+  clearTimeout(scorePulseTimeout);
+  scorePulseTimeout = setTimeout(() => {
+    scoreDisplay.classList.remove('scoreboard--pulse');
+  }, 220);
+}
+
+function ensureMusicLoop() {
+  if (!audio.music) return;
+  if (state.musicUnlocked && !audio.music.paused) {
+    return;
+  }
+  try {
+    const playPromise = audio.music.play();
+    if (playPromise && typeof playPromise.then === 'function') {
+      playPromise
+        .then(() => {
+          state.musicUnlocked = true;
+        })
+        .catch(() => {
+          state.musicUnlocked = false;
+        });
+    } else {
+      state.musicUnlocked = true;
+    }
+  } catch (error) {
+    state.musicUnlocked = false;
+  }
+}
+
+function setDifficulty(level) {
+  const nextDifficulty = DIFFICULTY_PRESETS[level] ? level : DEFAULT_DIFFICULTY;
+  if (state.difficulty === nextDifficulty) {
+    updateDifficultyButtons();
+    return;
+  }
+
+  state.difficulty = nextDifficulty;
+  const settings = getDifficultySettings();
+  state.targetPipeSpeed = settings.baseSpeed;
+
+  if (state.current === 'playing') {
+    state.pipeGap = settings.gap;
+  } else {
+    syncDifficultySettings();
+    state.pipes = [];
+    groundScroll = 0;
+    if (state.current === 'ready') {
+      player.reset(true);
+    }
+  }
+
+  updateDifficultyButtons();
+  updateScoreUI();
+}
+
+function syncDifficultySettings() {
+  const settings = getDifficultySettings();
+  state.pipeSpeed = settings.baseSpeed;
+  state.targetPipeSpeed = settings.baseSpeed;
+  state.pipeGap = settings.gap;
+  state.spawnTimer = 0;
+  state.lastGapCenter = (PIPE.MIN_GAP_CENTER + PIPE.MAX_GAP_CENTER) / 2;
+}
+
+function getDifficultySettings(level = state.difficulty) {
+  return DIFFICULTY_PRESETS[level] || DIFFICULTY_PRESETS[DEFAULT_DIFFICULTY];
+}
+
+function updateDifficultyButtons() {
+  difficultyButtons.forEach((button) => {
+    const isActive = button.dataset.difficulty === state.difficulty;
+    button.classList.toggle('is-active', isActive);
+    button.setAttribute('aria-pressed', String(isActive));
+  });
+}
+
+function lerp(start, end, t) {
+  return start + (end - start) * Math.min(1, Math.max(0, t));
 }

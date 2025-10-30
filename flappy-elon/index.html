@@ -17,6 +17,15 @@
       <h1>Flappy Elon</h1>
       <p class="overlay__subtitle">Tap anywhere or press Space to start</p>
       <p class="overlay__hint">Flap with Space, Click, or Tap</p>
+      <div class="overlay__group" role="group" aria-labelledby="difficultyLabel">
+        <p id="difficultyLabel" class="overlay__label">Difficulty</p>
+        <div class="difficulty-buttons">
+          <button class="difficulty-button" type="button" data-difficulty="easy">Easy</button>
+          <button class="difficulty-button is-active" type="button" data-difficulty="normal">Normal</button>
+          <button class="difficulty-button" type="button" data-difficulty="hard">Hard</button>
+        </div>
+        <p class="overlay__hint overlay__hint--small">Easy glides slowly, Hard zips through space.</p>
+      </div>
     </div>
 
     <div id="gameOverOverlay" class="overlay">
@@ -27,13 +36,12 @@
       <button id="restartButton" type="button">Restart</button>
     </div>
 
-    <div id="scoreDisplay" class="scoreboard is-hidden">0</div>
+    <div id="scoreDisplay" class="scoreboard is-hidden" data-difficulty="normal">0</div>
   </main>
 
   <!-- Replace the placeholder assets in assets/sprites with your own pixel art to reskin the game. -->
-  <audio id="flapSound" src="assets/audio/flap.wav" preload="auto"></audio>
   <audio id="hitSound" src="assets/audio/hit.wav" preload="auto"></audio>
-  <audio id="scoreSound" src="assets/audio/score.wav" preload="auto"></audio>
+  <audio id="musicTrack" src="assets/audio/ambient-loop.wav" preload="auto" loop></audio>
 
   <script src="game.js"></script>
 </body>

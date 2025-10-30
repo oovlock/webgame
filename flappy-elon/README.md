@@ -16,16 +16,17 @@ No servers, build tools, or installations required.
 
 - **Tap / Click / Space** – Flap upward
 - **Tap / Click** while on the start screen – begin a run
+- **Difficulty buttons** (Easy / Normal / Hard) – choose the pipe speed profile before take-off
 - **R** on the keyboard – restart quickly after a crash
 
 ## Gameplay Features
 
-- Smooth physics tuned for a gentle-but-silly hovercraft feel
+- Smooth, physics-influenced motion with subtle drag and rotation smoothing
 - Responsive click/tap/space controls
 - Parallax starfield, drifting clouds, and scrolling ground
-- Procedurally generated pipe pairs with adaptive difficulty
+- Procedurally generated pipe pairs with adaptive difficulty curves
 - On-screen score plus persistent local high score (stored in `localStorage`)
-- Screen shake, fade transitions, and a rotation animation for crashes
+- Screen shake, fade transitions, calm retro soundtrack, and rotation animation for crashes
 - Crash quotes because Elon's ego demands narration
 
 ## Customising the Game
@@ -53,7 +54,14 @@ All art lives in `assets/sprites/`:
 
 ### Swap the Sounds
 
-Audio clips live in `assets/audio/` (`flap.wav`, `hit.wav`, `score.wav`). Provide your own WAV files (short and punchy), or keep the placeholders.
+Audio lives in `assets/audio/`:
+
+| File | Purpose |
+| --- | --- |
+| `ambient-loop.wav` | Calm retro background loop (plays continuously) |
+| `hit.wav` | Crash impact sting |
+
+Replace these WAV files with your own tracks to alter the vibe. Keep the filenames so the HTML references continue to work. If you prefer silence, simply remove the audio elements from `index.html`.
 
 ### Tune the Physics & Difficulty
 
@@ -61,24 +69,54 @@ Open `game.js` and look for the constant blocks near the top:
 
 ```js
 const PHYSICS = {
-  GRAVITY: 800,
-  FLAP_STRENGTH: 250,
-  MAX_DROP_SPEED: 520
+  GRAVITY: 780,
+  FLAP_STRENGTH: 265,
+  MAX_DROP_SPEED: 540,
+  DRAG: 0.08,
+  ROTATION_SMOOTHING: 7.5
 };
 
-const PIPE = {
-  BASE_SPEED: 150,
-  GAP: 140,
-  SPAWN_INTERVAL: 1.85
-};
-
-const DIFFICULTY = {
-  SPEED_INCREMENT: 9,
-  GAP_REDUCTION: 2.5
+const DIFFICULTY_PRESETS = {
+  easy: {
+    baseSpeed: 120,
+    maxSpeed: 190,
+    speedIncrement: 6,
+    gap: 155,
+    gapReduction: 1.6,
+    minGap: 130,
+    spawnInterval: 2.05,
+    minSpawnInterval: 1.45,
+    spawnAcceleration: 0.015,
+    gapVariance: 65
+  },
+  normal: {
+    baseSpeed: 150,
+    maxSpeed: 240,
+    speedIncrement: 9,
+    gap: 140,
+    gapReduction: 2.4,
+    minGap: 112,
+    spawnInterval: 1.85,
+    minSpawnInterval: 1.25,
+    spawnAcceleration: 0.02,
+    gapVariance: 78
+  },
+  hard: {
+    baseSpeed: 188,
+    maxSpeed: 270,
+    speedIncrement: 12,
+    gap: 130,
+    gapReduction: 3.2,
+    minGap: 98,
+    spawnInterval: 1.65,
+    minSpawnInterval: 1.1,
+    spawnAcceleration: 0.025,
+    gapVariance: 96
+  }
 };
 ```
 
-Adjust these values to change gravity, flap strength, pipe spacing, or how quickly the game ramps up. Each block is heavily commented in the source.
+Tweak these values to change gravity, flap strength, gap sizes, or how quickly each preset ramps up. Each block is commented in the source describing how the numbers affect play.
 
 ### Add More Personality
 
@@ -92,9 +130,8 @@ Adjust these values to change gravity, flap strength, pipe spacing, or how quick
 flappy-elon/
 ├── assets/
 │   ├── audio/
-│   │   ├── flap.wav
-│   │   ├── hit.wav
-│   │   └── score.wav
+│   │   ├── ambient-loop.wav
+│   │   └── hit.wav
 │   └── sprites/
 │       ├── background.png
 │       ├── elon.png

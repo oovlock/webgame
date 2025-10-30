@@ -8,4 +8,10 @@ A standalone browser game where you pilot a pixellated Elon Musk through an endl
 2. Tap/click or press **Space** to flap.
 3. Dodge the pipes, chase new high scores, and laugh at the crash quotes.
 
+### Highlights
+
+- Three selectable difficulty presets that control pipe speed and spacing
+- Smoother, physics-inspired movement with polished pipe/ground art
+- Chill retro background loop with crunchy crash feedback
+
 For detailed documentation, asset replacement tips, and tuning guides, see [`flappy-elon/README.md`](flappy-elon/README.md).
