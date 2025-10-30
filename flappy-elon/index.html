@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Elon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="game-shell">
+    <canvas id="gameCanvas" width="480" height="640" aria-label="Flappy Elon game area"></canvas>
+
+    <div id="startOverlay" class="overlay overlay--visible">
+      <h1>Flappy Elon</h1>
+      <p class="overlay__subtitle">Tap anywhere or press Space to start</p>
+      <p class="overlay__hint">Flap with Space, Click, or Tap</p>
+    </div>
+
+    <div id="gameOverOverlay" class="overlay">
+      <h2>Game Over</h2>
+      <p class="overlay__score">Score: <span id="finalScore">0</span></p>
+      <p class="overlay__score overlay__score--small">Best: <span id="bestScore">0</span></p>
+      <p id="crashQuote" class="overlay__quote"></p>
+      <button id="restartButton" type="button">Restart</button>
+    </div>
+
+    <div id="scoreDisplay" class="scoreboard is-hidden">0</div>
+  </main>
+
+  <!-- Replace the placeholder assets in assets/sprites with your own pixel art to reskin the game. -->
+  <audio id="flapSound" src="assets/audio/flap.wav" preload="auto"></audio>
+  <audio id="hitSound" src="assets/audio/hit.wav" preload="auto"></audio>
+  <audio id="scoreSound" src="assets/audio/score.wav" preload="auto"></audio>
+
+  <script src="game.js"></script>
+</body>
+</html>
