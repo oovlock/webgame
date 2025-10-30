@@ -423,7 +423,7 @@ function detectCollisions() {
   for (const pipe of state.pipes) {
     const topRect = {
       x: pipe.x,
-      y: -WORLD.HEIGHT,
+      y: 0,
       width: pipe.width,
       height: pipe.topHeight
     };
