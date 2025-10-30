@@ -1,47 +1,20 @@
-# Super Apple Adventure
+# Flappy Elon
 
-A 2D Mario-themed web game where you must dodge a dragon, collect apples to power up, and ultimately defeat the dragon!
+A standalone browser game where you pilot a pixellated Elon Musk through an endless field of pipes. The entire project lives inside the `flappy-elon/` directory.
 
-## How to Play
+## Play It
 
-Simply open `index.html` in any modern web browser. No build process or server required!
+1. Open `flappy-elon/index.html` in any modern browser (Chrome, Edge, Firefox, Safari).
+2. Tap/click or press **Space** to flap.
+3. Dodge the pipes, chase new high scores, and laugh at the crash quotes.
 
-### Controls
+### Highlights
 
-- **Move Left/Right**: Arrow Keys or A/D
-- **Jump**: W, Space, or Arrow Up
-- **Attack** (when powered up): K or Ctrl
+- Four selectable difficulty presets (Easy, Normal, Hard, and Elon Mode) with distinct pipe speeds and spacing
+- Per-mode high score tracking with a quick-look scoreboard for every mode
+- Smoother, physics-inspired movement with polished pipe/ground art
+- Chill retro background loop with crunchy crash feedback
+- Elon Mode unleashes a ludicrous-speed gauntlet for thrill seekers
+- Responsive layout tuned for both desktop and mobile play
 
-### Gameplay
-
-1. **Avoid the Dragon**: The dragon patrols the area and swoops down periodically. Avoid contact or you'll be scorched!
-2. **Collect Apples**: Gather apples that appear throughout the level
-3. **Power Up**: After collecting 5 apples, you'll grow larger and gain the ability to attack
-4. **Defeat the Dragon**: Hit the dragon 3 times while powered up to win!
-
-## Features
-
-- Mario-themed pixel art styling and colors
-- Smooth 2D physics with gravity and jumping
-- Dynamic enemy AI with patrol and swoop attack patterns
-- Progressive power-up system
-- Collision detection for all game elements
-- Win/lose conditions with restart functionality
-- Responsive HUD displaying game stats
-
-## Technical Details
-
-- **Pure HTML5 Canvas** rendering
-- **Vanilla JavaScript** - no frameworks or dependencies
-- **Standalone** - works offline, no build tools required
-- Mario-inspired aesthetic with red, blue, gold, and green color palette
-
-## Browser Compatibility
-
-Works in all modern browsers that support HTML5 Canvas and ES6 JavaScript:
-- Chrome
-- Firefox
-- Safari
-- Edge
-
-Enjoy the game!
+For detailed documentation, asset replacement tips, and tuning guides, see [`flappy-elon/README.md`](flappy-elon/README.md).
