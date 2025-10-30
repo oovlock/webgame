@@ -33,11 +33,23 @@
       <h2>Game Over</h2>
       <p class="overlay__score">Score: <span id="finalScore">0</span></p>
       <p class="overlay__score overlay__score--small">Best: <span id="bestScore">0</span></p>
+      <div class="overlay__scoreboard" id="modeHighScores">
+        <h3>Mode High Scores</h3>
+        <ul>
+          <li>Easy: <span data-mode-score="easy">0</span></li>
+          <li>Normal: <span data-mode-score="normal">0</span></li>
+          <li>Hard: <span data-mode-score="hard">0</span></li>
+          <li>Elon Mode: <span data-mode-score="elon">0</span></li>
+        </ul>
+      </div>
       <p id="crashQuote" class="overlay__quote"></p>
       <button id="restartButton" type="button">Restart</button>
     </div>
 
-    <div id="scoreDisplay" class="scoreboard is-hidden" data-difficulty="NORMAL">0</div>
+    <div id="scoreDisplay" class="scoreboard is-hidden" data-difficulty="NORMAL">
+      <span id="currentScoreValue">0</span>
+      <small id="scoreSubLabel"><span id="modeLabel">Normal</span> Best: <span id="currentModeHighScore">0</span></small>
+    </div>
   </main>
 
   <!-- Replace the placeholder assets in assets/sprites with your own pixel art to reskin the game. -->

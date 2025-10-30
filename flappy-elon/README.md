@@ -26,9 +26,11 @@ No servers, build tools, or installations required.
 - Parallax starfield, drifting clouds, and scrolling ground
 - Procedurally generated pipe pairs with adaptive difficulty curves
 - Four difficulty presets, capped by the ludicrous-speed "Elon Mode"
+- Per-mode high score tracking with a mode leaderboard stored in `localStorage`
 - On-screen score plus persistent local high score (stored in `localStorage`)
 - Screen shake, fade transitions, calm retro soundtrack, and rotation animation for crashes
 - Crash quotes because Elon's ego demands narration
+- Responsive layout so the game is playable on phones and tablets
 
 ## Customising the Game
 

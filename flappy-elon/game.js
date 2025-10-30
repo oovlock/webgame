@@ -17,6 +17,14 @@ const scoreDisplay = document.getElementById('scoreDisplay');
 const finalScoreLabel = document.getElementById('finalScore');
 const bestScoreLabel = document.getElementById('bestScore');
 const crashQuoteLabel = document.getElementById('crashQuote');
+const modeHighScoreList = document.getElementById('modeHighScores');
+const currentScoreValue = document.getElementById('currentScoreValue');
+const currentModeHighScore = document.getElementById('currentModeHighScore');
+const scoreSubLabel = document.getElementById('scoreSubLabel');
+const modeLabel = document.getElementById('modeLabel');
+const modeScoreElements = modeHighScoreList
+  ? Array.from(modeHighScoreList.querySelectorAll('[data-mode-score]'))
+  : [];
 
 let scorePulseTimeout;
 
@@ -123,11 +131,43 @@ const QUOTES = [
   '“Pretty sure Mars has fewer pipes.”'
 ];
 
+const MODE_HIGHSCORE_KEY = 'flappy-elon-mode-scores';
+const DEFAULT_MODE_HIGH_SCORES = { easy: 0, normal: 0, hard: 0, elon: 0 };
+
+function loadModeHighScores() {
+  try {
+    const raw = localStorage.getItem(MODE_HIGHSCORE_KEY);
+    if (!raw) {
+      const legacy = Number(localStorage.getItem('flappy-elon-high-score')) || 0;
+      return { ...DEFAULT_MODE_HIGH_SCORES, normal: legacy };
+    }
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object') {
+      return { ...DEFAULT_MODE_HIGH_SCORES, ...parsed };
+    }
+  } catch (error) {
+    // Ignore malformed data and fall back to defaults.
+  }
+  return { ...DEFAULT_MODE_HIGH_SCORES };
+}
+
+function persistModeHighScores(scores) {
+  try {
+    localStorage.setItem(MODE_HIGHSCORE_KEY, JSON.stringify(scores));
+  } catch (error) {
+    // Ignore quota or privacy mode errors in storage.
+  }
+}
+
+const initialModeHighScores = loadModeHighScores();
+const initialOverallHighScore = Math.max(0, ...Object.values(initialModeHighScores));
+
 const state = {
   current: 'boot', // boot | ready | playing | gameover
   difficulty: DEFAULT_DIFFICULTY,
   score: 0,
-  highScore: Number(localStorage.getItem('flappy-elon-high-score')) || 0,
+  highScore: initialOverallHighScore,
+  modeHighScores: { ...initialModeHighScores },
   spawnTimer: 0,
   pipeSpeed: initialDifficulty.baseSpeed,
   targetPipeSpeed: initialDifficulty.baseSpeed,
@@ -144,6 +184,8 @@ const clouds = createClouds();
 let groundScroll = 0;
 
 const player = createPlayer();
+
+updateModeHighScoreUI();
 
 const imageManifest = {
   background: 'assets/sprites/background.png',
@@ -255,8 +297,10 @@ function endGame() {
   showOverlay(gameOverOverlay);
   scoreDisplay.classList.add('is-hidden');
   finalScoreLabel.textContent = state.score.toString();
-  bestScoreLabel.textContent = state.highScore.toString();
+  const modeBest = state.modeHighScores[state.difficulty] || 0;
+  bestScoreLabel.textContent = modeBest.toString();
   crashQuoteLabel.textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
+  updateModeHighScoreUI();
 }
 
 function triggerTransition(callback) {
@@ -583,11 +627,20 @@ function triggerCrash() {
   player.velocity = 0;
   player.rotation = 1.05;
 
-  if (state.score > state.highScore) {
-    state.highScore = state.score;
+  const mode = state.difficulty;
+  const previousBest = state.modeHighScores[mode] || 0;
+  if (state.score > previousBest) {
+    state.modeHighScores[mode] = state.score;
+    persistModeHighScores(state.modeHighScores);
+  }
+  state.highScore = Math.max(0, ...Object.values(state.modeHighScores));
+  try {
     localStorage.setItem('flappy-elon-high-score', state.highScore);
+  } catch (error) {
+    // Ignore storage errors (private browsing, etc.).
   }
 
+  updateModeHighScoreUI();
   triggerTransition(endGame);
 }
 
@@ -768,8 +821,14 @@ function hideOverlay(element) {
 }
 
 function updateScoreUI() {
-  scoreDisplay.textContent = state.score.toString();
-  scoreDisplay.dataset.difficulty = formatDifficultyLabel(state.difficulty);
+  if (!scoreDisplay) return;
+  const label = formatDifficultyLabel(state.difficulty);
+  scoreDisplay.dataset.difficulty = label;
+  if (currentScoreValue) {
+    currentScoreValue.textContent = state.score.toString();
+  }
+  updateModeHighScoreUI();
+
   if (state.current !== 'playing') {
     scoreDisplay.classList.add('is-hidden');
     scoreDisplay.classList.remove('scoreboard--pulse');
@@ -855,6 +914,37 @@ function updateDifficultyButtons() {
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', String(isActive));
   });
+}
+
+function updateModeHighScoreUI() {
+  const label = formatDifficultyLabel(state.difficulty);
+  const modeBest = state.modeHighScores[state.difficulty] || 0;
+
+  if (modeLabel) {
+    modeLabel.textContent = label;
+  }
+
+  if (currentModeHighScore) {
+    currentModeHighScore.textContent = modeBest.toString();
+  }
+
+  if (!modeLabel && scoreSubLabel) {
+    const prefix = `${label} Best: `;
+    const firstNode = scoreSubLabel.firstChild;
+    if (!firstNode || firstNode.nodeType !== Node.TEXT_NODE) {
+      scoreSubLabel.insertBefore(document.createTextNode(prefix), scoreSubLabel.firstChild);
+    } else {
+      firstNode.textContent = prefix;
+    }
+  }
+
+  if (modeScoreElements.length) {
+    modeScoreElements.forEach((element) => {
+      const mode = element.getAttribute('data-mode-score');
+      if (!mode) return;
+      element.textContent = (state.modeHighScores[mode] || 0).toString();
+    });
+  }
 }
 
 function formatDifficultyLabel(level) {
