@@ -14,7 +14,7 @@ No servers, build tools, or installations required.
 
 ## Controls
 
-- **Tap / Click / Space** – Flap upward
+- **Tap / Click / Space / Enter / Arrow Up/Down** – Flap upward
 - **Tap / Click** while on the start screen – begin a run
 - **Difficulty buttons** (Easy / Normal / Hard / Elon Mode) – choose the pipe speed profile before take-off (Elon Mode is ~4× faster than Hard)
 - **R** on the keyboard – restart quickly after a crash

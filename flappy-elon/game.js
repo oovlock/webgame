@@ -180,8 +180,22 @@ restartButton.addEventListener('click', () => {
 });
 
 canvas.addEventListener('pointerdown', handlePrimaryInput);
+[startOverlay, gameOverOverlay].forEach((element) => {
+  element.addEventListener('pointerdown', (event) => {
+    const isDifficultyButton = event.target.closest('.difficulty-button');
+    if (isDifficultyButton) {
+      return;
+    }
+    if (event.target === restartButton || event.target.closest('#restartButton')) {
+      return;
+    }
+    handlePrimaryInput();
+  });
+});
+
 window.addEventListener('keydown', (event) => {
-  if (event.code === 'Space' || event.code === 'ArrowUp') {
+  const primaryKeys = new Set(['Space', 'ArrowUp', 'ArrowDown', 'Enter', 'NumpadEnter']);
+  if (primaryKeys.has(event.code)) {
     event.preventDefault();
     handlePrimaryInput();
   }
@@ -840,7 +854,7 @@ function updateDifficultyButtons() {
 
 function formatDifficultyLabel(level) {
   if (level === 'elon') {
-    return 'ELON';
+    return 'ELON MODE';
   }
   return level.toUpperCase();
 }
