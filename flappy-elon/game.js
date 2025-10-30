@@ -515,7 +515,8 @@ function createPlayer() {
 
 function spawnPipePair() {
   const settings = getDifficultySettings();
-  const gapSize = state.pipeGap;
+  const variationFactor = 1 + randomRange(-0.18, 0.18) + Math.min(state.score / 80, 0.25);
+  const gapSize = clamp(settings.minGap, settings.gap * 1.3, state.pipeGap * variationFactor);
   const minCenter = PIPE.MIN_GAP_CENTER + gapSize / 2;
   const maxCenter = PIPE.MAX_GAP_CENTER - gapSize / 2;
   const drift = randomRange(-settings.gapVariance, settings.gapVariance);
@@ -605,9 +606,10 @@ function detectCollisions() {
 function updateDifficulty() {
   const settings = getDifficultySettings();
 
+  const difficultyMultiplier = 1 + Math.floor(state.score / 5) * 0.05;
   const desiredSpeed = Math.min(
-    settings.baseSpeed + state.score * settings.speedIncrement,
-    settings.maxSpeed
+    (settings.baseSpeed + state.score * settings.speedIncrement) * difficultyMultiplier,
+    settings.maxSpeed * difficultyMultiplier
   );
   state.targetPipeSpeed += (desiredSpeed - state.targetPipeSpeed) * 0.35;
   state.pipeSpeed += (state.targetPipeSpeed - state.pipeSpeed) * 0.18;
