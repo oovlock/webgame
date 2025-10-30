@@ -85,16 +85,16 @@ const DIFFICULTY_PRESETS = {
     gapVariance: 78
   },
   hard: {
-    baseSpeed: 188,
-    maxSpeed: 270,
-    speedIncrement: 12,
-    gap: 130,
-    gapReduction: 3.2,
-    minGap: 98,
-    spawnInterval: 1.65,
-    minSpawnInterval: 1.1,
-    spawnAcceleration: 0.025,
-    gapVariance: 96
+    baseSpeed: 210,
+    maxSpeed: 340,
+    speedIncrement: 16,
+    gap: 118,
+    gapReduction: 3.8,
+    minGap: 88,
+    spawnInterval: 1.45,
+    minSpawnInterval: 0.95,
+    spawnAcceleration: 0.03,
+    gapVariance: 110
   }
 };
 
