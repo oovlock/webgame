@@ -20,7 +20,6 @@ const crashQuoteLabel = document.getElementById('crashQuote');
 const modeHighScoreList = document.getElementById('modeHighScores');
 const currentScoreValue = document.getElementById('currentScoreValue');
 const currentModeHighScore = document.getElementById('currentModeHighScore');
-const scoreSubLabel = document.getElementById('scoreSubLabel');
 const modeLabel = document.getElementById('modeLabel');
 const modeScoreElements = modeHighScoreList
   ? Array.from(modeHighScoreList.querySelectorAll('[data-mode-score]'))
@@ -926,16 +925,6 @@ function updateModeHighScoreUI() {
 
   if (currentModeHighScore) {
     currentModeHighScore.textContent = modeBest.toString();
-  }
-
-  if (!modeLabel && scoreSubLabel) {
-    const prefix = `${label} Best: `;
-    const firstNode = scoreSubLabel.firstChild;
-    if (!firstNode || firstNode.nodeType !== Node.TEXT_NODE) {
-      scoreSubLabel.insertBefore(document.createTextNode(prefix), scoreSubLabel.firstChild);
-    } else {
-      firstNode.textContent = prefix;
-    }
   }
 
   if (modeScoreElements.length) {
