@@ -162,10 +162,11 @@ canvas {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .difficulty-button {
-  flex: 1;
+  flex: 1 1 calc(50% - 8px);
   padding: 10px 0;
   font-size: clamp(9px, 2.8vw, 11px);
   background: linear-gradient(180deg, #1f2b4a 0%, #13213b 100%);
@@ -182,6 +183,18 @@ canvas {
   border-color: #3e83d4;
 }
 
+.difficulty-button--elon {
+  background: linear-gradient(180deg, #ffd74a 0%, #ff9b3d 100%);
+  color: #341500;
+  border-color: #d97706;
+  box-shadow: 0 4px 0 #9a4f05;
+}
+
+.difficulty-button--elon:hover {
+  color: #210c00;
+  border-color: #fbbf24;
+}
+
 .difficulty-button.is-active {
   background: linear-gradient(180deg, #3bf5ff 0%, #2ab3ff 100%);
   color: #051532;
@@ -189,9 +202,20 @@ canvas {
   box-shadow: 0 4px 0 #0f2654;
 }
 
+.difficulty-button--elon.is-active {
+  background: linear-gradient(180deg, #ffe066 0%, #ff7a1c 100%);
+  color: #2b0b00;
+  border-color: #b45309;
+  box-shadow: 0 4px 0 #8c2f00;
+}
+
 .difficulty-button:active {
   transform: translateY(2px);
   box-shadow: 0 1px 0 #0f2654;
+}
+
+.difficulty-button--elon:active {
+  box-shadow: 0 1px 0 #8c2f00;
 }
 
 .overlay__score {

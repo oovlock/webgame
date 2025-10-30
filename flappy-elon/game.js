@@ -95,6 +95,18 @@ const DIFFICULTY_PRESETS = {
     minSpawnInterval: 0.95,
     spawnAcceleration: 0.03,
     gapVariance: 110
+  },
+  elon: {
+    baseSpeed: 840,
+    maxSpeed: 1360,
+    speedIncrement: 64,
+    gap: 110,
+    gapReduction: 5.2,
+    minGap: 72,
+    spawnInterval: 0.36,
+    minSpawnInterval: 0.18,
+    spawnAcceleration: 0.08,
+    gapVariance: 160
   }
 };
 
@@ -738,7 +750,7 @@ function hideOverlay(element) {
 
 function updateScoreUI() {
   scoreDisplay.textContent = state.score.toString();
-  scoreDisplay.setAttribute('data-difficulty', state.difficulty);
+  scoreDisplay.dataset.difficulty = formatDifficultyLabel(state.difficulty);
   if (state.current !== 'playing') {
     scoreDisplay.classList.add('is-hidden');
     scoreDisplay.classList.remove('scoreboard--pulse');
@@ -824,6 +836,13 @@ function updateDifficultyButtons() {
     button.classList.toggle('is-active', isActive);
     button.setAttribute('aria-pressed', String(isActive));
   });
+}
+
+function formatDifficultyLabel(level) {
+  if (level === 'elon') {
+    return 'ELON';
+  }
+  return level.toUpperCase();
 }
 
 function lerp(start, end, t) {
