@@ -208,7 +208,12 @@ window.addEventListener('keydown', (event) => {
 difficultyButtons.forEach((button) => {
   button.addEventListener('click', () => {
     ensureMusicLoop();
-    setDifficulty(button.dataset.difficulty);
+    const level = button.dataset.difficulty;
+    const wasActive = button.classList.contains('is-active');
+    setDifficulty(level);
+    if (wasActive) {
+      handlePrimaryInput();
+    }
   });
 });
 
