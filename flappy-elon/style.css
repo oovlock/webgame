@@ -61,7 +61,7 @@ canvas {
     top: 10px;
     right: 10px;
     gap: 4px;
-    font-size: clamp(9px, 3vw, 12px);
+    font-size: clamp(8px, 3vw, 10px);
   }
 
   .overlay__group {
@@ -85,14 +85,14 @@ canvas {
   transform: none;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   padding: 0;
   min-width: unset;
   background: none;
   border: none;
   color: #e2ecff;
-  font-size: clamp(10px, 2.4vw, 14px);
-  letter-spacing: 0.5px;
+  font-size: clamp(8px, 1.9vw, 11px);
+  letter-spacing: 0.4px;
   font-weight: 500;
   text-shadow: 1px 1px 0 rgba(5, 12, 28, 0.8);
   transition: opacity 160ms ease, color 160ms ease;
@@ -103,6 +103,7 @@ canvas {
   font-weight: 700;
   color: #9bdcff;
   text-transform: uppercase;
+  font-size: 0.9em;
 }
 
 .scoreboard--pulse {
